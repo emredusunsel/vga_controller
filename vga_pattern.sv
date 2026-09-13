@@ -40,7 +40,7 @@
 // > Assign every RGB output on every combinational path
 //      so that you do not infer latches
 
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 module vga_pattern (
     input   logic   [9:0]   x_i,        // Horizontal coordinate

@@ -17,13 +17,13 @@
 // | active_o    | HIGH when x < 640 and y < 480           |
 // | hsync_o     | LOW when 656 <= x < 752; HIGH otherwise |
 // | vsync_o     | LOW when 490 <= y < 492; HIGH otherwise |
-// | frame_end_o | HIGH onlt when x = 799 and y = 524      |
+// | frame_end_o | HIGH only when x = 799 and y = 524      |
 
 // frame_end_o lasts one pixel interval.
 //  Another sequential block can use it as an enable on the rising edge
 //  that wraps the counters
 
-// > Derive these outputs combinationallt from the current counters,
+// > Derive these outputs combinationally from the current counters,
 //      without adding output pipeline registers
 
 // Reset behaviour:
@@ -57,7 +57,7 @@
 //  sync signals are low
 
 
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 module vga_timing (
     input   logic           clk_pix_i,  // Pixel clock
@@ -71,6 +71,26 @@ module vga_timing (
     output  logic           frame_end_o // Current position is the last interval of the fram
 );
 
+    always_ff @(posedge clk_pix_i) begin : vga_timing_block
+        if (!rstn_i) begin
+            x_o <= '0;
+            y_o <= '0;
+        end else begin
+            if (x_o < 799) begin
+                x_o <= x_o + 1;
+            end else if ((x_o == 799) && (y_o == 524)) begin
+                x_o <= '0;
+                y_o <= '0;
+            end else begin
+                x_o <= '0;
+                y_o <= y_o + 1;
+            end
+        end
+    end
 
+    assign active_o    = rstn_i && (x_o < 640) && (y_o < 480);
+    assign hsync_o     = !rstn_i || !((x_o >= 656) && (x_o < 752));
+    assign vsync_o     = !rstn_i || !((y_o >= 490) && (y_o < 492));
+    assign frame_end_o = rstn_i && (x_o == 799) && (y_o == 524);
 
 endmodule

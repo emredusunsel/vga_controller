@@ -23,7 +23,7 @@
 // Even when the picture is static, the controller must keep
 // transmitting it repeatedly.
 
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 module vga_core (
     input   logic   clk_pix_i,
