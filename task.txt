@@ -1,0 +1,182 @@
+- 640x480 VGA display controller
+- First version: display eight vertical colour bars
+- Second version: display a white rectangle on a blue background
+
+- VGA sends a picture continuously, one pixel at a time, scanning left to right and then top to bottom
+    First pixel: (x, y) = (0, 0)
+    Next pixel: (1, 0)
+    Last visible pixel on that row: (639, 0)
+    Next visible pixel row begins at (0, 1)
+    Last visible pixel of the frame: (639, 479)
+
+- Controller does not immediately move from last visible pixel of one row to the first visible pixel of the next. There are extra time intervals called blanking
+- During blanking, you output black and generate synchronization signals at specific times
+
+Main signals:
+
+| Signal           | Purpose                                                                |
+|------------------|------------------------------------------------------------------------|
+| Reg, Green, Blue | Colour intensity of the current pixel                                  |
+| hsync            | horizontal synchronization identify line timing                        |
+| vsync            | vertical synchronization identify frame timing                         |
+| pixel clock      | internal fpga clock that determines how long each pixel interval lasts |
+
+- pixel clock is internal; dont need to send it through the VGA connector.
+- dont sen the pixel coordinates. Monitor reconstruct the picture from the RGB signals and synchronization timing
+
+- DE10-Lite has a resistor VGA interface with 4 bits per colour channel.
+    therefore use:
+        logic [3:0] red;
+        logic [3:0] green;
+        logic [3:0] blue;
+
+Example: 
+
+| Colour | Red | Green | Blue |
+|--------|-----|-------|------|
+| Black  | 0   | 0     | 0    |
+| white  | 15  | 15    | 15   |
+| Red    | 15  | 0     | 0    |
+| Green  | 0   | 15    | 0    |
+| Blue   | 0   | 0     | 0    |
+| Yellow | 15  | 15    | 0    |
+| Grey   | 8   | 8     | 8    |
+
+- Exact Video Timing:
+
+25.2 MHz pixel clock (exactl 60 fps)
+
+| horizontal interval | Length in pixel clocks | x range |
+|---------------------|------------------------|---------|
+| visible area        | 640                    | 0-639   |
+| front porch         | 16                     | 640-655 |
+| sync pulse          | 96                     | 656-751 |
+| back porch          | 48                     | 752-799 |
+| entire line         | 800                    | 0-799   |
+
+| vertical interval   | Length in lines        | y range |
+|---------------------|------------------------|---------|
+| visible area        | 480                    | 0-479   |
+| front porch         | 10                     | 480-489 |
+| sync pulse          | 2                      | 890-491 |
+| back porch          | 33                     | 492-524 |
+| entire line         | 525                    | 0-524   |
+
+- the front porch is the black interval before a sync pulse
+- the back porch is the blank interval after a sync pulse
+- both sync signals are active-low: low during their pulse, high otherwise
+
+- horizontal durations are measured in pixel clocks
+- vertical durations are measured in lines
+
+Testbench clock and sampling rules:
+
+Use a testbench time unit and precision such as:
+timeunit 1ns;
+timeprecision 1ps;
+
+For the pixel clock:
+    T_pixel = 1 / 25.2MHz ~= 39.68254ns
+
+Generate a clock with approximately 19.84127 ns per half-period.
+Simulation rounds this to your time precision; that is fine
+
+Drive reset and pattern changes on falling edges. 
+Sample/check outputs 1ns after falling edges, so counters and combinational outputs are stable and you avoid rising-edge scheduling races
+
+Startup sequence:
+1. Initialize clock low and reset low
+2. Keep reset asserted for at least two rising edges
+3. Release reset on a falling edge
+4. Sample 1ns later: expect (0, 0)
+5. Continue sampling once per falling edge, 1ns afterwars
+
+Keep pattern_i constant for each captured frame. The core does not buffer pattern changes; changing it halfway through a frame would immediately change the remaining pixels
+
+Required Verificaiton:
+
+Run at least two complete frames, excluding reset intervals
+
+For each frame, verify:
+
+| Check                                       | Expected result |
+|---------------------------------------------|-----------------|
+| Total pixel intervals                       | 420,000         |
+| Lines                                       | 525             |
+| Pixel intervals per line                    | 800             |
+| Active pixels per visible line              | 640             |
+| Active pixels per blank line                | 0               |
+| Total active pixels                         | 307,200         |
+| Horizontal sync low intervals per line      | 96              |
+| Vertical sync low lines                     | 2               |
+| Vertical sync low pixel intervals per frame | 1,600           |
+| frame_end_o high intervals                  | 1               |
+
+Also check:
+- x and y follow the exact increment/wrap rules
+- All sync boundries match the specifiation
+- RGB is zero during every blank interval
+- No output contains X or Z after reset
+- Every active pixel has the expected colour for its pattern
+- Asserting reset halfway through a frame restarts scanning correctly
+
+Use an independent expected-position counter in the testbench. Do not only inspect DUT's active_o and trust its coordinates: a broken controller might consistently skip pixels and still make its own colour checks pass
+
+A full frame takes:
+    800 x 525 = 420,000 pixel clocks
+
+At 25.2MHz, that is approximately 16.667 ms of simulated time. Simulator wall-clock runtime is a seperate matter
+
+Save the output as a picture:
+
+For the initial viewer, have the testbench create and ASCII PPM file using $fopen, $fdisplay, and $fclose
+
+The beginning of the file is:
+P3
+640 480
+15
+
+Meaning:
+- P3: RGB values stores as text
+- 640 480: image dimesions
+- 15: maximum value of each colour channel
+
+After the header, write one RGB tripler per active pixel, in scan order:
+15 15 15
+15 15 15
+
+Those are two white pixels. Use spaces and newlines, without commas or parantheses
+
+Capture exactly 307,200 active pixels, beginning at (0, 0) and ending ate (639, 479)
+Do not write blanking intervals into the picture
+
+Create:
+- colour_bars.ppm
+- rectangle.ppm
+
+These can be converted to PNG for viewing. PPM is convenient here because SystemVerilog can write it directly without implementing an image-compression format.
+
+The exported image checks appearance; the timing assertions check whether the VGA stream is correctly formed.
+
+File organization:
+| File             | Responsibility                                   |
+|------------------|--------------------------------------------------|
+| vga_timing.sv    | Counters, sync, active are, frame-end indication |
+| vga_pattern.sv   | Colour bars and rectangle                        |
+| vga_core.sv      | Connects the two modules                         | 
+| vga_timing_tb.sv | Timing verification                              |
+| vga_core_tb.sv   | Full verification and image export               |
+
+First run the modules alone:
+iverilog -g2012 -s vga_timing_tb -o vga_timing_sim \
+  rtl/vga_timing.sv tb/vga_timing_tb.sv
+
+vvp vga_timing_sim
+
+After that passes, integrate the pattern generator:
+iverilog -g2012 -s vga_core_tb -o vga_core_sim \
+  rtl/vga_timing.sv rtl/vga_pattern.sv rtl/vga_core.sv \
+  tb/vga_core_tb.sv
+
+vvp vga_core_sim
+
