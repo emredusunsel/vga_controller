@@ -1,0 +1,27 @@
+
+> Keep existing timing generator. Extend the pattern generator with
+    square-position registers and direction bits:
+
+- Draw a 32x32 white square on a blue background
+- Move it one pixel horizontally and vertically per frame
+- Update its position only when frame_end_o is high at a rising pixel-clock edge
+- Reverse horizontal direction at the left and right boundaries
+- Reverse vertical direction at the top and bottom boundaries
+
+Updating during frame blanking keeps the square's position constant throughout the
+    visible scan. If its position changed midway through drawing the picture, 
+    different rows could show different positions- a form of tearing
+
+Your frame-end s,gnal now has a practical purpose: it acts as a clock enable,
+    while all registers still use clk_pix_i. Don't use it as a seperate clock.
+
+For a 32x32 square, its top-left coordinate must stay within:
+    0 <= x_square <= 608, 0 <= y_square <= 448
+
+The drawing condition becomes:
+    (x_i >= square_x) && (x_i < square_x + 32) &&
+    (y_i >= square_y) && (y_i < square_y + 32)
+
+You can continue exporting selected frames to inspect movement. Once that works,
+    a Verilator/SDL viewer becomes particularly useful because you can watch 
+    the animation continuously.
