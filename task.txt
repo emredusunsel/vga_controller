@@ -22,7 +22,7 @@ Main signals:
 | pixel clock      | internal fpga clock that determines how long each pixel interval lasts |
 
 - pixel clock is internal; dont need to send it through the VGA connector.
-- dont sen the pixel coordinates. Monitor reconstruct the picture from the RGB signals and synchronization timing
+- dont send the pixel coordinates. Monitor reconstruct the picture from the RGB signals and synchronization timing
 
 - DE10-Lite has a resistor VGA interface with 4 bits per colour channel.
     therefore use:
@@ -62,7 +62,7 @@ Example:
 | back porch          | 33                     | 492-524 |
 | entire line         | 525                    | 0-524   |
 
-- the front porch is the black interval before a sync pulse
+- the front porch is the blank interval before a sync pulse
 - the back porch is the blank interval after a sync pulse
 - both sync signals are active-low: low during their pulse, high otherwise
 
