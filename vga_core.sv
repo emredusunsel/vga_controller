@@ -1,6 +1,6 @@
 // Instantiate vga_timing and vga_pattern
 // connect the timing coordinates and active signal to the
-// pattern generator. Expose the timign and RGB outputs 
+// pattern generator. Expose the timing and RGB outputs 
 // through the core
 
 // The coordinate/debug outputs help simulation; they do not
@@ -11,7 +11,7 @@
 // shift the colours relative to the timing
 
 // There is no ready signal or backpressure. Once running,
-// the core must produce one pixel interval every clokc continuously
+// the core must produce one pixel interval every clock continuously
 
 // Do not need a framebuffer:
 // A framebuffer stores an image in memory
@@ -43,4 +43,34 @@ module vga_core (
     output  logic           frame_end_o
 );
     
+    logic [9:0] x_w, y_w;
+    logic active_w;
+
+    vga_timing u_vga_timing (
+        .clk_pix_i  (clk_pix_i),
+        .rstn_i     (rstn_i),
+        
+        .x_o        (x_w),
+        .y_o        (y_w),
+        .active_o   (active_w),
+        .hsync_o    (hsync_o),
+        .vsync_o    (vsync_o),
+        .frame_end_o(frame_end_o)
+    );
+
+    vga_pattern u_vga_pattern (
+        .x_i      (x_w),
+        .y_i      (y_w),
+        .active_i (active_w),
+        .pattern_i(pattern_i),
+
+        .red_o    (red_o),
+        .green_o  (green_o),
+        .blue_o   (blue_o)
+    );
+
+    assign x_o = x_w;
+    assign y_o = y_w;
+    assign active_o = active_w;
+
 endmodule

@@ -147,7 +147,7 @@ After the header, write one RGB tripler per active pixel, in scan order:
 
 Those are two white pixels. Use spaces and newlines, without commas or parantheses
 
-Capture exactly 307,200 active pixels, beginning at (0, 0) and ending ate (639, 479)
+Capture exactly 307,200 active pixels, beginning at (0, 0) and ending at (639, 479)
 Do not write blanking intervals into the picture
 
 Create:
