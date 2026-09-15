@@ -1,12 +1,13 @@
 `timescale 1ns/1ps
 
-module vga_core_tb;
+module vga_core_bars_tb;
 
     localparam real CLK_FREQ_MHZ = 25.2;
     localparam real CLK_PERIOD = 1000.0 / CLK_FREQ_MHZ; // 39.682... ns
     localparam real HALF_PERIOD = CLK_PERIOD / 2.0; // 19.841... ns
 
-    logic clk_pix_i, rstn_i, pattern_i;
+    logic clk_pix_i, rstn_i;
+    logic [1:0] pattern_i;
     logic [3:0] red_o, green_o, blue_o;
     logic hsync_o, vsync_o;
     // Simulation/debug outputs
@@ -45,7 +46,7 @@ module vga_core_tb;
     initial rstn_i = 0;
 
     initial begin
-        pattern_i = 0;
+        pattern_i = 2'b00;
         #100;
         rstn_i = 1;
         wait (frame_end_o)

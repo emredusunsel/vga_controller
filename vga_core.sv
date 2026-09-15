@@ -28,7 +28,7 @@
 module vga_core (
     input   logic   clk_pix_i,
     input   logic   rstn_i,
-    input   logic   pattern_i,
+    input   logic   [1:0]   pattern_i,
 
     output  logic   [3:0]   red_o,
     output  logic   [3:0]   green_o,

@@ -15,7 +15,8 @@ module vga_core_signal_tb;
     localparam logic [11:0] BLUE    = 12'h00F;
     localparam logic [11:0] BLACK   = 12'h000;
 
-    logic clk_pix_i, rstn_i, pattern_i;
+    logic clk_pix_i, rstn_i;
+    logic [1:0] pattern_i;
     logic [3:0] red_o, green_o, blue_o;
     logic hsync_o, vsync_o;
     // Simulation/debug outputs
@@ -88,7 +89,7 @@ module vga_core_signal_tb;
     task automatic check_rgb();
         logic [11:0] exp_rgb;
 
-        if ((pattern_i == 1'b0) && rstn_i) begin
+        if ((pattern_i == 2'b00) && rstn_i) begin
             if (y_o >= 480) begin
                 exp_rgb = BLACK;
                 if (exp_rgb !== {red_o, green_o, blue_o})
@@ -131,7 +132,7 @@ module vga_core_signal_tb;
                     if (exp_rgb !== {red_o, green_o, blue_o})
                         $fatal(1, "FAIL 9");
             end
-        end else if ((pattern_i == 1'b1) && rstn_i) begin
+        end else if ((pattern_i == 2'b01) && rstn_i) begin
             if ((x_o >= 640) || (y_o >= 480)) begin
                 exp_rgb = BLACK;
                 if (exp_rgb !== {red_o, green_o, blue_o})
@@ -151,13 +152,13 @@ module vga_core_signal_tb;
     endtask
 
     initial begin
-        pattern_i = 0;
+        pattern_i = 2'b00;
         #100;
         rstn_i = 1;
         wait(frame_end_o)
             repeat (2) @(negedge clk_pix_i);
         rstn_i = 0;
-        pattern_i = 1;
+        pattern_i = 2'b01;
         #100;
         rstn_i = 1;
         wait(frame_end_o)       // wraparound/second loop

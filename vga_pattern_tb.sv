@@ -12,7 +12,8 @@ module vga_pattern_tb;
     localparam logic [11:0] BLACK   = 12'h000;
 
     logic [9:0] x_i, y_i;
-    logic active_i, pattern_i;
+    logic active_i;
+    logic [1:0] pattern_i;
     logic [3:0] red_o, green_o, blue_o;
 
     vga_pattern dut (
@@ -74,7 +75,7 @@ module vga_pattern_tb;
     endtask
 
     initial begin
-        pattern_i = 0;
+        pattern_i = 2'b00;
         active_i = 1;
     end
 
@@ -95,7 +96,7 @@ module vga_pattern_tb;
         #50; 
         $display("PATTERN 1: PASSED");
         #50;
-        pattern_i = 1;
+        pattern_i = 2'b01;
 
         for (int ycnt = 0; ycnt < 525; ycnt++) begin
             y_i = ycnt;

@@ -45,7 +45,7 @@ module vga_pattern (
     input   logic   [9:0]   x_i,        // Horizontal coordinate
     input   logic   [9:0]   y_i,        // Vertical coordinate
     input   logic           active_i,   // Visible are qualification
-    input   logic           pattern_i,  // Selects the requested pattern
+    input   logic   [1:0]   pattern_i,  // Selects the requested pattern
     
     output  logic   [3:0]   red_o,      // Red intensity
     output  logic   [3:0]   green_o,    // Green intensity
@@ -68,7 +68,7 @@ module vga_pattern (
             rgb = 12'h000;
         else begin
             case (pattern_i)
-                1'b0: begin
+                2'b00: begin
                     if ((x_i >= 640) || (y_i >= 480))
                         rgb = BLACK;
                     else begin
@@ -93,7 +93,7 @@ module vga_pattern (
                     end
                 end
 
-                1'b1: begin
+                2'b01: begin
                     if ((x_i >= 640) || (y_i >= 480))
                         rgb = BLACK;
                     else begin
@@ -102,6 +102,10 @@ module vga_pattern (
                         else
                             rgb = BLUE;
                     end
+                end
+
+                2'b10: begin
+                    
                 end
                 default: rgb = 12'h000;
             endcase
