@@ -63,6 +63,7 @@ module vga_pattern (
 
     logic [11:0] rgb;
 
+
     always_comb begin : vga_pattern_block
         if (!active_i)
             rgb = 12'h000;
@@ -105,7 +106,14 @@ module vga_pattern (
                 end
 
                 2'b10: begin
-                    
+                    if ((x_i >= 640) && (y_i >= 480))
+                        rgb = BLACK;
+                    else begin
+                        if (((x_i + y_i) % 80 == 0) && ((x_i - y_i) % 40 == 0))
+                            rgb = WHITE;
+                        else
+                            rgb = RED;
+                    end
                 end
                 default: rgb = 12'h000;
             endcase
