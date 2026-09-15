@@ -1,27 +1,7 @@
-// Instantiate vga_timing and vga_pattern
-// connect the timing coordinates and active signal to the
-// pattern generator. Expose the timing and RGB outputs 
-// through the core
-
 // The coordinate/debug outputs help simulation; they do not
 // need physical board pins.
 
-// RGB, coordinates, active, and sync all describe the same
-// pixel interval. Do not register only RGB, because that would
-// shift the colours relative to the timing
-
-// There is no ready signal or backpressure. Once running,
-// the core must produce one pixel interval every clock continuously
-
-// Do not need a framebuffer:
-// A framebuffer stores an image in memory
-// Here, each pixel colour is calculated directly from its coordinate
-// "The current coordinate is inside the rectangle, so output white"
-// The means you only need counters, comparisons, and colour-selection
-// logic. You do not need to store 307,200 pixels
-
-// Even when the picture is static, the controller must keep
-// transmitting it repeatedly.
+// Each pixel colour is calculated directly from its coordinate
 
 `timescale 1ns/1ps
 

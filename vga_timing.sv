@@ -8,7 +8,6 @@
 //  3. If x is 799, set x to zero and advance y
 //  4. If both x is 799 and y is 524, wrap both to zero
 
-// Do not use hsync as a clock for the vertical counter.
 // Both counters use clk_pix_i;
 //  the horizontal terminal count enables the vertical increment
 
@@ -22,9 +21,6 @@
 // frame_end_o lasts one pixel interval.
 //  Another sequential block can use it as an enable on the rising edge
 //  that wraps the counters
-
-// > Derive these outputs combinationally from the current counters,
-//      without adding output pipeline registers
 
 // Reset behaviour:
 //  - A risign edge with rstn_i = 0 sets x_o = 0, y_o = 0
@@ -52,7 +48,7 @@
 // | (  0, 492)    | 0      | 1     | 1     | Vertical back porch starts         |
 // | (799, 524)    | 0      | 1     | 1     | Last interval of frame             |
 
-// Horizontal scanning and horicaontal sync continue during
+// Horizontal scanning and horizontal sync continue during
 //  verical blanking. For example, at (649, 490) both
 //  sync signals are low
 

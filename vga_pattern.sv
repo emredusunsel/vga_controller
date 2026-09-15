@@ -2,8 +2,6 @@
 
 // Highest priority rule:
 //      whenever active_i = 0, all RGB outputs must be zero
-//  That includes the porches as well as the sync intervals
-//  Merely checking whether a sync signal is low is insufficient
 
 // When pattern_i = 0, display eight vertical bars:
 // | Visible x range | Clolour |  {red_o, green_o, blue_o} |
@@ -17,14 +15,10 @@
 // | 480-559         | Blue    | 12'h00F                   |
 // | 560-639         | Black   | 12'h000                   |
 
-// Each bar is 80 pixels wide and extends across all 480 visible rows
 // when pattern_i = 1, display:
 //  - A blue background: 12'h00F
 //  - A white rectangle: 12'hFFF
 //  - Rectangle condition: 240 <= x < 400 and 180 <= y < 300
-
-// The rectangle is exatly 160 pixels wide and 120 pixels tall,
-//      centered on the screen
 
 // Boundary examples:
 // | Coordinate | Expected colour                 |
@@ -35,9 +29,6 @@
 // | (400, 299) | Blue                            |
 // | (240, 300) | Blue                            |
 // | (640, 200) | Black, outside the visible area |
-
-// > Assign every RGB output on every combinational path
-//      so that you do not infer latches
 
 `timescale 1ns/1ps
 
